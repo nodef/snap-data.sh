@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -24,8 +25,8 @@ function matchWord(x, f) {
 function matchWords(x, f) {
   if (!f) return true;
   for (var w of f.split(/\W+/g))
-    if (x.includes(w)) return true;
-  return false;
+    if (!x.includes(w)) return false;
+  return true;
 }
 
 
@@ -41,7 +42,7 @@ function cpExec(cmd, o) {
 }
 
 
-function extract(pth) {
+function extractFile(pth) {
   if (pth.endsWith('.zip')) cpExec(`unzip "${pth}" && rm -f "${pth}"`);
   else if (pth.endsWith('.tar.gz')) cpExec(`tar -xzf "${pth} && rm -f "${pth}""`);
   else if (pth.endsWith('.gz')) cpExec(`gunzip "${pth}"`);
@@ -97,7 +98,7 @@ function clone(r, dir) {
     var nam = filename(dow);
     if (fs.existsSync(nam)) continue;
     cpExec(`wget ${f}`);
-    extract(dow);
+    extractFile(dow);
     a.push(nam);
   }
   return a;

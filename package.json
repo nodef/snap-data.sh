@@ -1,0 +1,40 @@
+{
+  "name": "snap-data.sh",
+  "version": "0.0.1",
+  "description": "CLI for SNAP data, which is a collection of more than 50 large networks.",
+  "preferGlobal": true,
+  "main": "index.js",
+  "bin": {
+    "snap-data": "index.js"
+  },
+  "scripts": {
+    "test": "exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nodef/snap-dataset.sh.git"
+  },
+  "keywords": [
+    "cli",
+    "console",
+    "terminal",
+    "snap",
+    "dataset",
+    "stanford",
+    "network",
+    "analysis",
+    "project",
+    "large",
+    "collection",
+    "graph"
+  ],
+  "author": "wolfram77@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nodef/snap-dataset.sh/issues"
+  },
+  "homepage": "https://github.com/nodef/snap-dataset.sh#readme",
+  "devDependencies": {
+    "csv": "^5.5.0"
+  }
+}

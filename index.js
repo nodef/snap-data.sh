@@ -44,7 +44,7 @@ function cpExec(cmd, o) {
 
 function extractFile(pth) {
   if (pth.endsWith('.zip')) cpExec(`unzip "${pth}" && rm -f "${pth}"`);
-  else if (pth.endsWith('.tar.gz')) cpExec(`tar -xzf "${pth} && rm -f "${pth}""`);
+  else if (pth.endsWith('.tar.gz')) cpExec(`tar -xzf "${pth}" && rm -f "${pth}"`);
   else if (pth.endsWith('.gz')) cpExec(`gunzip "${pth}"`);
 }
 

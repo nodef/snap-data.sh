@@ -10,14 +10,6 @@ const data = require('./data.json');
 // HELPERS
 // -------
 
-function setDifference(x, y) {
-  var a = [];
-  for (var v of x)
-    if (!y.includes(v)) a.push(v);
-  return a;
-}
-
-
 function matchWord(x, f) {
   return !f || x===f;
 }
@@ -42,9 +34,22 @@ function cpExec(cmd, o) {
 }
 
 
-function extractFile(pth) {
-  if (pth.endsWith('.zip')) cpExec(`unzip "${pth}" && rm -f "${pth}"`);
-  else if (pth.endsWith('.tar.gz')) cpExec(`tar -xzf "${pth}" && rm -f "${pth}"`);
+function extractZipped(cmd, pth, out) {
+  var dir = path.dirname(pth);
+  var tmp = fs.mkdtempSync(path.join(dir, 'zip-'));
+  cpExec(`mkdir -p "${out}"`);
+  cpExec(cmd.replace('${pth}', pth).replace('${tmp}', tmp));
+  var tmps = fs.readdirSync(tmp, {withFileTypes: true});
+  if (tmps.length>1 || !tmps[0].isDirectory()) cpExec(`mv "${tmp}"/* "${out}"/`);
+  else cpExec(`mv "${path.join(tmp, tmps[0].name)}"/* "${out}"/`);
+  cpExec(`rm -rf "${tmp}"`);
+  cpExec(`rm -rf "${pth}"`);
+}
+
+
+function extractFile(pth, out) {
+  if (pth.endsWith('.zip')) extractZipped('unzip "${pth}" -d "${tmp}"', pth, out);
+  else if (pth.endsWith('.tar.gz')) extractZipped('tar -xzf "${pth}" -C "${tmp}"', pth, out);
   else if (pth.endsWith('.gz')) cpExec(`gunzip "${pth}"`);
 }
 
@@ -95,11 +100,13 @@ function clone(r, dir) {
   }
   var fetched = [], skipped = [];
   for (var f of r.files) {
+    var out = path.join(dir, r.id);
     var dow = path.join(cwd, f.replace(/.*\//, ''));
     var nam = filename(dow);
     if (fs.existsSync(nam)) { skipped.push(f); continue; }
+    cpExec(`rm -f "${dow}"`);
     cpExec(`wget ${f}`);
-    extractFile(dow);
+    extractFile(dow, out);
     fetched.push(nam);
   }
   return [fetched, skipped];
@@ -124,7 +131,7 @@ function runClone(args) {
     if (!matchWords(r.type, o.type)) return false;
     return true;
   });
-  console.log('Matched datasets: '+rows.map(r => r.id).join('\n')+'\n');
+  console.log('Matched datasets:\n'+rows.map(r => r.id).join('\n')+'\n');
   if (o.out) process.chdir(o.out);
   var fetched = [], skipped = [];
   for (var r of rows) {

@@ -124,7 +124,7 @@ function runClone(args) {
     if (!matchWords(r.type, o.type)) return false;
     return true;
   });
-  console.log('Matched datasets: '+rows.map(r => r.id).join(', ')+'\n');
+  console.log('Matched datasets: '+rows.map(r => r.id).join('\n')+'\n');
   if (o.out) process.chdir(o.out);
   var fetched = [], skipped = [];
   for (var r of rows) {

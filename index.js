@@ -87,21 +87,22 @@ function runHelp(args) {
 // ---------
 
 function clone(r, dir) {
-  var cwd = dir, a = [];
+  var cwd = dir;
   if (r.path==='/') {
     cpExec(`mkdir -p "${id}"`, {cwd});
     cwd = path.join(dir, id);
-    if (fs.existsSync(cwd)) return [];
+    if (fs.existsSync(cwd)) return [[], r.files];
   }
+  var fetched = [], skipped = [];
   for (var f of r.files) {
     var dow = path.join(cwd, f.replace(/.*\//, ''));
     var nam = filename(dow);
-    if (fs.existsSync(nam)) continue;
+    if (fs.existsSync(nam)) { skipped.push(f); continue; }
     cpExec(`wget ${f}`);
     extractFile(dow);
-    a.push(nam);
+    fetched.push(nam);
   }
-  return a;
+  return [fetched, skipped];
 }
 
 
@@ -125,11 +126,11 @@ function runClone(args) {
   });
   console.log('Matched datasets: '+rows.map(r => r.id).join(', ')+'\n');
   if (o.out) process.chdir(o.out);
-  var skipped = [], fetched = [];
+  var fetched = [], skipped = [];
   for (var r of rows) {
     var files = clone(r, process.cwd());
-    fetched.push(...files);
-    skipped.push(...setDifference(r.files, files));
+    fetched.push(...files[0]);
+    skipped.push(...files[1]);
   }
   console.log('\n');
   console.log('Fetched the following files:\n'+fetched.join('\n'));
@@ -156,5 +157,6 @@ function main(args) {
     case 'clone': return runClone(args);
     default: console.error(`error: unknown command "${cmd}"`); break;
   }
+  console.log();
 }
 main(processArgs(process.argv));

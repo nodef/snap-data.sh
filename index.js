@@ -96,11 +96,11 @@ function clone(r, dir) {
   if (r.path==='/') {
     cpExec(`mkdir -p "${id}"`, {cwd});
     cwd = path.join(dir, id);
-    if (fs.existsSync(cwd)) return [[], r.files];
   }
   var fetched = [], skipped = [];
+  var out = path.join(dir, r.id);
+  if (fs.existsSync(out)) return [[], r.files];
   for (var f of r.files) {
-    var out = path.join(dir, r.id);
     var dow = path.join(cwd, f.replace(/.*\//, ''));
     var nam = filename(dow);
     if (fs.existsSync(nam)) { skipped.push(f); continue; }

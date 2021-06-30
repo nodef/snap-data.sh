@@ -94,8 +94,8 @@ function runHelp(args) {
 function clone(r, dir) {
   var cwd = dir;
   if (r.path==='/') {
-    cpExec(`mkdir -p "${id}"`, {cwd});
-    cwd = path.join(dir, id);
+    cpExec(`mkdir -p "${r.id}"`, {cwd});
+    cwd = path.join(dir, r.id);
   }
   var fetched = [], skipped = [];
   var out = path.join(dir, r.id);

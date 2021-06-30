@@ -34,6 +34,14 @@ function cpExec(cmd, o) {
 }
 
 
+function existsSync(pth) {
+  if (!fs.existsSync(pth)) return false;
+  var s = fs.statSync(pth);
+  if (!s.isDirectory()) return true;
+  return fs.readdirSync(pth).length>0;
+}
+
+
 function extractZipped(cmd, pth, out) {
   var dir = path.dirname(pth);
   var tmp = fs.mkdtempSync(path.join(dir, 'zip-'));
@@ -99,11 +107,11 @@ function clone(r, dir) {
   }
   var fetched = [], skipped = [];
   var out = path.join(dir, r.id);
-  if (fs.existsSync(out)) return [[], r.files];
+  if (existsSync(out)) return [[], r.files];
   for (var f of r.files) {
     var dow = path.join(cwd, f.replace(/.*\//, ''));
     var nam = filename(dow);
-    if (fs.existsSync(nam)) { skipped.push(f); continue; }
+    if (existsSync(nam)) { skipped.push(f); continue; }
     cpExec(`rm -f "${dow}"`);
     cpExec(`wget ${f}`);
     extractFile(dow, out);

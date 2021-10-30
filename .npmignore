@@ -4,3 +4,6 @@ build.js
 
 # Data
 data.csv
+
+# Scripts
+main.sh

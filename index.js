@@ -58,7 +58,7 @@ function extractZipped(cmd, pth, out) {
 function extractFile(pth, out) {
   if (pth.endsWith('.zip')) extractZipped('unzip "${pth}" -d "${tmp}"', pth, out);
   else if (pth.endsWith('.tar.gz')) extractZipped('tar -xzf "${pth}" -C "${tmp}"', pth, out);
-  else if (pth.endsWith('.gz')) cpExec(`gunzip "${pth}"`);
+  else if (pth.endsWith('.gz')) cpExec(`gzip -d "${pth}"`);
 }
 
 

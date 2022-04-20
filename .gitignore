@@ -1,6 +1,10 @@
-## Generated files
+# Generated files
+.build/
+.docs/
+*.d.ts
+*.map
+example.js
 data.json
-
 
 # Logs
 logs

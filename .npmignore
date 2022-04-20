@@ -1,9 +1,23 @@
-# Build
-build.js
-.travis.yml
-
-# Data
+# Source only
+.github/
+.gitmodules
+src/
+data/
+wiki/
+tests/
 data.csv
-
-# Scripts
+test*.?js
 main.sh
+TODO
+
+# Build
+.build/
+.docs/
+.travis.yml
+.coveralls.yml
+tsconfig.json
+jestconfig.json
+rollup.config.js
+build.js
+build-*.sh
+index.log

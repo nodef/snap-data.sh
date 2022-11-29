@@ -1,14 +1,16 @@
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const cp = require('child_process');
-const csv = require('csv');
-const htmlEntities = require('html-entities');
+const path  = require('path');
+const fs    = require('fs');
+const cp    = require('child_process');
+const csv   = require('csv');
+const build = require('extra-build');
+const htmlEntities   = require('html-entities');
 const markdownToText = require('markdown-to-text').default;
 
+const owner  = 'nodef';
+const repo   = build.readMetadata('.').name;
 const DATA_INPUT  = 'data.csv';
 const DATA_OUTPUT = 'data.json';
-const HELP_URL = 'https://github.com/nodef/snap-data.sh/wiki/${name}';
+const HELP_URL    = 'https://github.com/nodef/snap-data.sh/wiki/${name}';
 const HELP_NAME_SIZE = 16;
 const HELP_DESC_SIZE = 74;
 
@@ -37,30 +39,6 @@ function stringAlign(x, n, s) {
 }
 
 
-function readFile(f) {
-  var d = fs.readFileSync(f, 'utf8');
-  return d.replace(/\r?\n/g, '\n');
-}
-
-function writeFile(f, d) {
-  d = d.replace(/\r?\n/g, os.EOL);
-  fs.writeFileSync(f, d);
-}
-
-
-function readJson(pth) {
-  var pth = pth||'package.json';
-  var d = readFile(pth)||'{}';
-  return JSON.parse(d);
-}
-
-function writeJson(pth, v) {
-  var pth = pth||'package.json';
-  var d = JSON.stringify(v, null, 2)+'\n';
-  writeFile(pth, d);
-}
-
-
 
 
 // BUILD-MAN
@@ -71,7 +49,7 @@ function readDescWiki() {
   for (var f of fs.readdirSync('wiki')) {
     if (path.extname(f) !== '.md') continue;
     if (f==='Home.md') continue;
-    var d = readFile(`wiki/${f}`);
+    var d = build.readFileText(`wiki/${f}`);
     var name = f.replace(/\..*/, '');
     var desc = d.match(/^(.*)$/m)[1];
     a.set(name, desc);
@@ -83,7 +61,7 @@ function readHelp() {
   var a = '', ns = HELP_NAME_SIZE, ds = HELP_DESC_SIZE;
   for (var [name, desc] of readDescWiki())
     a += ` ${name.padEnd(ns)} ${stringAlign(desc, ds, 2+ns)}\n`;
-  var d = readFile('man/help.txt');
+  var d = build.readFileText('man/help.txt');
   return d.replace('${commands}', a);
 }
 
@@ -109,10 +87,10 @@ function copyMan(dir) {
     if (f === 'Home.md') continue;
     var g = f.replace(/\.md$/g, '');
     if (fs.existsSync(`man/${g}.txt`)) continue;
-    var d = readFile(`${dir}/${f}`);
+    var d = build.readFileText(`${dir}/${f}`);
     d = markdownToText(d);
     d = htmlEntities.decode(d);
-    writeFile(`man/${g}.txt`, d);
+    build.writeFileText(`man/${g}.txt`, d);
   }
 }
 
@@ -120,11 +98,11 @@ function copyMan(dir) {
 function buildMan(f=true) {
   var descs = readDescWiki();
   if (f) copyMan('wiki');
-  if (f) writeFile('man/help.txt', readHelp());
-  writeFile('index.log', readIndex(descs));
-  var p = readJson('package.json');
-  p.keywords = [...new Set([...p.keywords, ...descs.keys()])];
-  if (f) writeJson('package.json', p);
+  if (f) build.writeFileText('man/help.txt', readHelp());
+  build.writeFileText('index.log', readIndex(descs));
+  var m = build.readMetadata('.');
+  m.keywords = [...new Set([...m.keywords, ...descs.keys()])];
+  if (f) build.writeMetadata('.', m);
 }
 
 
@@ -132,7 +110,6 @@ function buildMan(f=true) {
 
 // BUILD-DATA
 // ----------
-
 
 function processRow(r) {
   var {id, name, type, path} = r;
@@ -149,8 +126,25 @@ function buildData() {
   var rows = [];
   var s = fs.createReadStream(DATA_INPUT).pipe(csv.parse({columns: true, comment: '#'}));
   s.on('data', r => rows.push(processRow(r)));
-  s.on('end', () => writeFile(DATA_OUTPUT, stringifyJson(rows)));
+  s.on('end', () => build.writeFileText(DATA_OUTPUT, stringifyJson(rows)));
 }
+
+
+
+
+// BUILD-PACKAGE
+// -------------
+
+function makeExec() {
+  cp.execSync(`chmod +x index.js`);
+}
+
+function buildPackage(f=true) {
+  buildData();
+  buildMan(f);
+  if (f) makeExec();
+}
+buildPackage(process.argv[2] !== 'local');
 
 
 
@@ -158,13 +152,39 @@ function buildData() {
 // MAIN
 // ----
 
-function makeExec() {
-  cp.execSync(`chmod +x index.js`);
+// Publish a root package to NPM, GitHub.
+function publishRootPackage(ds, ver, typ) {
+  var _package = build.readDocument('package.json');
+  var _readme  = build.readDocument('README.md');
+  var m  = build.readMetadata('.');
+  m.version  = ver;
+  build.writeMetadata('.', m);
+  build.publish('.');
+  try { build.publishGithub('.', owner); }
+  catch {}
+  build.writeDocument(_package);
+  build.writeDocument(_readme);
 }
 
-function main(f=true) {
-  buildData();
-  buildMan(f);
-  if (f) makeExec();
+
+// Publish root packages to NPM, GitHub.
+function publishRootPackages(ds, ver) {
+  buildPackage(true);
+  publishRootPackage(ds, ver, '');
 }
-main(process.argv[2] !== 'local');
+
+
+// Pushish root, sub packages to NPM, GitHub.
+function publishPackages(ds) {
+  var m   = build.readMetadata('.');
+  var ver = build.nextUnpublishedVersion(m.name, m.version);
+  publishRootPackages(ds, ver);
+}
+
+
+// Finally.
+function main(a) {
+  if (a[2]==='publish-packages') publishPackages([]);
+  else buildPackage(false);
+}
+main(process.argv);

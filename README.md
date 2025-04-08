@@ -53,6 +53,7 @@ $ snap-data clone --type "temporal,directed"
 [![](https://i.imgur.com/bJsIAeL.jpg)](https://www.youtube.com/watch?v=3479tkagiNo)<br>
 [![ORG](https://img.shields.io/badge/org-nodef-green?logo=Org)](https://nodef.github.io)
 [![DOI](https://zenodo.org/badge/367587608.svg)](https://zenodo.org/badge/latestdoi/367587608)
+![](https://ga-beacon.deno.dev/G-RC63DPBH3P:SH3Eq-NoQ9mwgYeHWxu7cw/github.com/nodef/snap-data.sh)
 
 [SNAP datasets]: http://snap.stanford.edu/data/index.html
 [clone]: https://github.com/nodef/snap-data.sh/wiki/clone
